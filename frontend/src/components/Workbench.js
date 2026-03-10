@@ -369,7 +369,8 @@ export default function Workbench() {
                     const qty = Number(p.tokenAmount || 0);
                     const valueUsd = (Number.isFinite(last) ? last : 0) * qty;
 
-                    const tokenTitle = `${p.symbol || 'UNKNOWN'} (${p.tokenAddress ? `${String(p.tokenAddress).slice(0, 6)}...${String(p.tokenAddress).slice(-4)}` : '-'})`;
+                    const displayName = p.name || p.symbol || 'UNKNOWN';
+                    const tokenTitle = `${displayName} (${p.tokenAddress ? `${String(p.tokenAddress).slice(0, 6)}...${String(p.tokenAddress).slice(-4)}` : '-'})`;
 
                     return (
                       <div key={p.id} className="grid grid-cols-12 gap-2 px-3 py-2 text-xs items-center">

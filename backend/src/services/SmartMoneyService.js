@@ -408,7 +408,12 @@ class SmartMoneyService {
         amount: this.settings.followAmount,
         slippage: this.settings.maxSlippage,
         minLiquidity: this.settings.minLiquidity,
-        minHolders: this.settings.minHolders
+        minHolders: this.settings.minHolders,
+        tokenMeta: {
+          symbol: signal?.token?.symbol,
+          name: signal?.token?.name,
+          logo: signal?.token?.logo,
+        },
       });
 
       // 更新交易记录

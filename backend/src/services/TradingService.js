@@ -196,7 +196,8 @@ class TradingService {
       amount,
       slippage = 5,
       minLiquidity = 10000,
-      minHolders = 100
+      minHolders = 100,
+      tokenMeta = null
     } = params;
 
     const tradeId = this.generateTradeId();
@@ -289,22 +290,49 @@ class TradingService {
       // 创建 position（用于止盈止损）
       if (result.success) {
         try {
-          const entryPriceUsd = Number(quote.data?.toToken?.tokenUnitPrice || quote.data?.routerResult?.toToken?.tokenUnitPrice || quote.data?.toTokenUnitPrice);
-          const tokenAmountEst = Number.isFinite(entryPriceUsd) && entryPriceUsd > 0 ? (Number(amount || 0) / entryPriceUsd) : null;
+          const entryPriceUsd = Number(
+            quote.data?.toToken?.tokenUnitPrice ||
+            quote.data?.routerResult?.toToken?.tokenUnitPrice ||
+            quote.data?.toTokenUnitPrice ||
+            quote.data?.price
+          );
+
+          // Prefer quote-derived amount if present; fallback to amount/price
+          const toTokenAmountMin = quote.data?.toTokenAmount; // minimal units
+          const toTokenDecimals = Number(quote.data?.toToken?.decimal || 0) || null;
+          let tokenAmountEst = null;
+          if (toTokenAmountMin && toTokenDecimals != null) {
+            try {
+              tokenAmountEst = Number(ethers.formatUnits(String(toTokenAmountMin), toTokenDecimals));
+            } catch {
+              tokenAmountEst = null;
+            }
+          }
+          if (tokenAmountEst == null) {
+            tokenAmountEst = Number.isFinite(entryPriceUsd) && entryPriceUsd > 0 ? (Number(amount || 0) / entryPriceUsd) : null;
+          }
+
+          const symbol = tokenMeta?.symbol || quote.data?.toToken?.symbol || null;
+          const name = tokenMeta?.name || quote.data?.toToken?.name || null;
+          const logo = tokenMeta?.logo || quote.data?.toToken?.logo || null;
+
           const position = {
             id: `pos_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             status: 'OPEN',
             chain,
             tokenAddress,
-            symbol: quote.data?.toToken?.symbol || null,
+            symbol,
+            name,
+            logo,
             entryPriceUsd: Number.isFinite(entryPriceUsd) ? entryPriceUsd : null,
+
             // paper trading fields
             costUsd: Number(amount || 0),
             tokenAmount: tokenAmountEst,
 
             buyAmountUsdc: amount,
-            receivedTokenAmountMin: quote.data?.toTokenAmount || null, // minimal units
-            tokenDecimal: Number(quote.data?.toToken?.decimal || 0) || null,
+            receivedTokenAmountMin: toTokenAmountMin || null,
+            tokenDecimal: toTokenDecimals,
             createdAt: Date.now(),
             executedTakeProfits: [],
             highWaterMarkUsd: Number.isFinite(entryPriceUsd) ? entryPriceUsd : null,
