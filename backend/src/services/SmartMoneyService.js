@@ -565,12 +565,21 @@ class SmartMoneyService {
     else if (Array.isArray(raw?.result)) signals = raw.result;
 
     const agg = new Map();
+    const canonicalize = (addr) => {
+      const raw = String(addr || '').trim();
+      if (!raw) return '';
+      // EVM lowercase; Solana/base58 keep original (case-sensitive)
+      if (/^0x[a-fA-F0-9]{40}$/.test(raw)) return raw.toLowerCase();
+      return raw;
+    };
+
     for (const s of signals) {
       const addrs = (s.triggerWalletAddress || '').split(',').map(x => x.trim()).filter(Boolean);
       const amount = Number(s.amountUsd || 0);
       const wt = String(s.walletType || '').trim(); // '1' smart money, '2' kol, '3' whale
       for (const a of addrs) {
-        const k = a.toLowerCase();
+        const k = canonicalize(a);
+        if (!k) continue;
         const cur = agg.get(k) || {
           address: k,
           count: 0,
