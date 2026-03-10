@@ -78,7 +78,7 @@ export default function Workbench() {
 
     // 输入框样式 - 统一高度和样式
     input: 'w-full h-8 border border-gray-200 rounded-md px-2.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-emerald-300 focus:border-emerald-300 transition-all',
-    inputNumber: 'w-20 h-8 border border-gray-200 rounded-md px-2 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-emerald-300 focus:border-emerald-300 transition-all text-center',
+    inputNumber: 'w-full h-8 border border-gray-200 rounded-md px-2.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-emerald-300 focus:border-emerald-300 transition-all text-center',
     select: 'w-full h-8 border border-gray-200 rounded-md px-2.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-emerald-300 focus:border-emerald-300 transition-all',
 
     // 按钮样式
@@ -171,11 +171,9 @@ export default function Workbench() {
         {!form ? (
           <div className="text-xs text-gray-500">加载中...</div>
         ) : (
-          <div className={`grid grid-cols-2 lg:grid-cols-4 ${UI.fieldGap}`}>
-            <div>
-              <div className={UI.labelTitle}>
-                触发数量<Tooltip text="至少多少个钱包同时买入才触发跟单" />
-              </div>
+          <div className={`grid grid-cols-2 lg:grid-cols-4 ${UI.fieldGap} items-start`}>
+            <div className="flex flex-col">
+              <div className={`${UI.labelTitle} h-5`}>触发数量<Tooltip text="至少多少个钱包同时买入才触发跟单" /></div>
               <input
                 type="number"
                 value={form.minTriggerCount}
@@ -185,11 +183,9 @@ export default function Workbench() {
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <div className={UI.labelTitle}>
-                  跟单金额<Tooltip text="每次触发后的买入金额（USDT）" />
-                </div>
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between h-5">
+                <div className={UI.labelTitle}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）" /></div>
                 <button
                   onClick={() => setOpenAdvanced(true)}
                   className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
@@ -206,24 +202,22 @@ export default function Workbench() {
               />
             </div>
 
-            <div>
-              <div className={UI.labelTitle}>
-                最大滑点<Tooltip text="交易时允许的最大价格滑点" />
-              </div>
-              <div className="flex items-center gap-1">
+            <div className="flex flex-col">
+              <div className={`${UI.labelTitle} h-5`}>最大滑点<Tooltip text="交易时允许的最大价格滑点" /></div>
+              <div className="relative">
                 <input
                   type="number"
                   value={form.maxSlippage}
                   onChange={(e) => setForm({ ...form, maxSlippage: Number(e.target.value) })}
-                  className={UI.inputNumber}
+                  className={`${UI.inputNumber} pr-7`}
                   min={0.1} step={0.1}
                 />
-                <span className="text-xs text-gray-500">%</span>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
               </div>
             </div>
 
-            <div>
-              <div className={UI.labelTitle}>检查间隔(ms)</div>
+            <div className="flex flex-col">
+              <div className={`${UI.labelTitle} h-5`}>检查间隔(ms)</div>
               <input
                 type="number"
                 value={form.checkInterval}
