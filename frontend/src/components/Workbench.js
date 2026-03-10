@@ -163,7 +163,21 @@ export default function Workbench() {
       {/* Top bar - 紧凑状态栏 */}
       <div className={`${UI.card} ${UI.cardCompact} flex items-center justify-between bg-gradient-to-r from-emerald-50 to-white border-emerald-100`}>
         <div>
-          <div className={UI.title}>Smart Money Follower</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className={UI.title}>Smart Money Follower</div>
+            <div className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              Powered by OKX OnchainOS
+            </div>
+            <a
+              href="https://x.com/0xjimumu"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+              title="作者 X 账号"
+            >
+              @0xjimumu
+            </a>
+          </div>
           <div className="text-xs text-gray-600 flex items-center gap-2 mt-0.5">
             <span className="flex items-center gap-1">
               状态：<span className={`px-1.5 py-0.5 rounded text-xs font-medium ${stats?.isRunning ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
