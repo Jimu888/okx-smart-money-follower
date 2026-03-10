@@ -49,6 +49,9 @@ api.interceptors.response.use(
         case 404:
           toast.error('请求的资源不存在');
           break;
+        case 409:
+          toast('已存在，无需重复添加', { icon: 'ℹ️' });
+          break;
         case 429:
           // 429 对轮询场景很常见，不要用红色 toast 打断用户
           console.warn('Rate limited (429)');

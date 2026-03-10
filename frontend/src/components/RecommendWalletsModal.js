@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery, useQueryClient } from 'react-query';
+import toast from 'react-hot-toast';
 import Modal from './Modal';
 import { apiService } from '../services/api';
 
@@ -16,8 +17,24 @@ export default function RecommendWalletsModal({ open, onClose, chain, setChain }
   const note = data?.note;
 
   const add = async (address) => {
-    await apiService.addWallet({ address, nickname: `OKX-${chain}` });
-    qc.invalidateQueries('watchlist');
+    try {
+      const list = await apiService.getWatchList();
+      const raw = String(address || '').trim();
+      const isEvm = /^0x[a-fA-F0-9]{40}$/.test(raw);
+      const canonical = isEvm ? raw.toLowerCase() : raw;
+      const exists = (list || []).some((w) => String(w.address) === canonical);
+      if (exists) {
+        // do not call backend
+        toast('已添加该钱包，无需重复添加', { icon: 'ℹ️' });
+        return;
+      }
+
+      await apiService.addWallet({ address: raw, nickname: `OKX-${chain}` });
+      qc.invalidateQueries('watchlist');
+    } catch (e) {
+      // swallow to avoid crashing modal
+      console.error('add wallet failed', e);
+    }
   };
 
   return (
