@@ -123,8 +123,20 @@ export default function Workbench() {
   const [newAddr, setNewAddr] = useState('');
   const [newNick, setNewNick] = useState('');
   const addWallet = async () => {
-    if (!newAddr.trim()) return toast.error('请输入钱包地址');
-    await apiService.addWallet({ address: newAddr.trim(), nickname: newNick.trim() });
+    const raw = (newAddr || '').trim();
+    if (!raw) return toast.error('请输入钱包地址');
+
+    // 已添加：直接提醒，不打后端
+    const isEvm = /^0x[a-fA-F0-9]{40}$/.test(raw);
+    const canonical = isEvm ? raw.toLowerCase() : raw;
+    const list = Array.isArray(wallets) ? wallets : (wallets?.wallets || []);
+    const exists = list.some((w) => String(w.address) === canonical);
+    if (exists) {
+      toast('已添加该钱包，无需重复添加', { icon: 'ℹ️' });
+      return;
+    }
+
+    await apiService.addWallet({ address: raw, nickname: (newNick || '').trim() });
     setNewAddr('');
     setNewNick('');
     qc.invalidateQueries('watchlist');
