@@ -484,6 +484,10 @@ export default function Workbench() {
           </div>
         </div>
 
+        <div className="text-xs text-amber-800 bg-amber-50 border border-amber-100 p-3 rounded-md mb-4">
+          风险提示：钱包推荐/导入可能来自第三方信号统计，不构成投资建议；跟单存在重大风险，请使用可承受亏损的资金并设置止盈止损。
+        </div>
+
         {/* 添加钱包 */}
         <div className="grid grid-cols-12 gap-2 mb-4 p-3 bg-gray-50 rounded-md">
           <input
