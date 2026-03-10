@@ -61,6 +61,8 @@ export default function Workbench() {
         minTriggerCount: settings.minTriggerCount ?? 3,
         maxSlippage: settings.maxSlippage ?? 5,
         checkInterval: settings.checkInterval ?? 30000,
+        // signal freshness in minutes
+        signalMaxAgeMin: Math.round(((settings.signalMaxAgeMs ?? 30 * 60 * 1000) / 60000)),
 
         stopLossPercent: settings.stopLossPercent ?? 0,
         takeProfitRules:
@@ -81,7 +83,14 @@ export default function Workbench() {
   };
 
   const saveSettings = async () => {
-    await apiService.updateSettings(form);
+    const payload = {
+      ...form,
+      // store in ms on backend
+      signalMaxAgeMs: Math.max(0, Number(form.signalMaxAgeMin || 0)) * 60 * 1000,
+    };
+    delete payload.signalMaxAgeMin;
+
+    await apiService.updateSettings(payload);
     toast.success('已保存');
     qc.invalidateQueries('settings');
     qc.invalidateQueries('dashboard-stats');
@@ -263,6 +272,17 @@ export default function Workbench() {
                 onChange={(e) => setForm({ ...form, checkInterval: Number(e.target.value) })}
                 className={UI.inputNumber}
                 min={5000} step={1000}
+              />
+            </div>
+
+            <div className="col-span-3 flex flex-col">
+              <div className={`${UI.labelTitle} h-5 mb-0`}>信号有效期(分钟)<Tooltip text="只对多少分钟内的信号触发跟单（避免启动时跟到很久以前的信号）。" /></div>
+              <input
+                type="number"
+                value={form.signalMaxAgeMin}
+                onChange={(e) => setForm({ ...form, signalMaxAgeMin: Number(e.target.value) })}
+                className={UI.inputNumber}
+                min={1} step={1}
               />
             </div>
 

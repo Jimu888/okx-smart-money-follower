@@ -41,8 +41,8 @@ class SmartMoneyService {
       cooldownPeriod: parseInt(process.env.COOLDOWN_PERIOD) || 300000,
 
       // ---- Signal freshness ----
-      // Only follow signals within this window (ms). Default 10 minutes.
-      signalMaxAgeMs: parseInt(process.env.SIGNAL_MAX_AGE_MS) || 10 * 60 * 1000,
+      // Only follow signals within this window (ms). Default 30 minutes.
+      signalMaxAgeMs: parseInt(process.env.SIGNAL_MAX_AGE_MS) || 30 * 60 * 1000,
 
       // ---- Follow Asset Mode ----
       // 默认B：AUTO（按链自动选择支付资产，优先 USDC/USDT，否则原生币）
