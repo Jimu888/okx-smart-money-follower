@@ -37,8 +37,19 @@ export default function RecommendWalletsModal({ open, onClose, chain, setChain }
         ))}
       </div>
 
-      <div className="text-xs text-gray-500 mb-3">
-        说明：从 OKX signal-list 聚合 triggerWalletAddress 得到候选地址池，仅保留 Smart Money(1) / KOL(2)。标签按该地址在两类信号中的出现次数占比二选一。
+      <div className="text-xs text-gray-600 mb-3 space-y-2">
+        <div>
+          <span className="font-semibold text-gray-800">来源说明：</span>
+          推荐钱包来自 OKX OnchainOS 的 signal-list 数据（按 <span className="font-mono">triggerWalletAddress</span> 聚合得到候选地址池），当前仅展示 Smart Money(1) / KOL(2) 两类信号。标签根据该地址在两类信号中的出现次数占比进行归类。
+        </div>
+        <div className="text-amber-800 bg-amber-50 border border-amber-100 p-3 rounded-xl">
+          <div className="font-semibold">风险提示（请务必阅读）</div>
+          <ul className="list-disc pl-4 mt-1 space-y-1">
+            <li>推荐仅基于公开/第三方信号统计，不构成投资建议或收益承诺。</li>
+            <li>跟单交易存在重大风险（包括但不限于：高波动、滑点、MEV、流动性不足、黑名单/貔貅、合约风险、链拥堵导致失败等）。</li>
+            <li>请使用可承受亏损的资金，必要时提高触发数量、降低跟单金额，并设置止盈止损。</li>
+          </ul>
+        </div>
       </div>
 
       {note ? <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 p-3 rounded-xl mb-3">{note}</div> : null}
