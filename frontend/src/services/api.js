@@ -87,6 +87,12 @@ class ApiService {
     return response.data;
   }
 
+  async resetPaperPortfolio(initialUsd) {
+    const response = await api.post('/api/paper/reset', { initialUsd });
+    toast.success('模拟账户已重置');
+    return response.data;
+  }
+
   async getSettings() {
     const response = await api.get('/api/settings');
     return response.data;

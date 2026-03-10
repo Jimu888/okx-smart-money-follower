@@ -22,6 +22,17 @@ module.exports = (services) => {
     }
   });
 
+  // Paper trading: reset portfolio (TEST_MODE only)
+  router.post('/paper/reset', async (req, res, next) => {
+    try {
+      const initialUsd = Number(req.body?.initialUsd);
+      const paper = await services.trading.resetPaper({ initialUsd });
+      res.json({ ok: true, paper });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   router.get('/settings', async (req, res, next) => {
     try {
       const persisted = await services.database.getSettings();

@@ -141,6 +141,28 @@ class DatabaseService {
     if (!status) return list;
     return list.filter((p) => p.status === status);
   }
+
+  // -------- Paper Trading Reset --------
+  async resetPaper({ initialUsd = 10000, clearTrades = true, clearPositions = true } = {}) {
+    await this.db.read();
+
+    // portfolio
+    this.db.data.portfolio ||= {};
+    this.db.data.portfolio.paper = {
+      initialUsd: Number(initialUsd) || 10000,
+      cashUsd: Number(initialUsd) || 10000,
+      realizedPnlUsd: 0,
+      updatedAt: Date.now(),
+    };
+
+    // clear paper records (MVP: all)
+    if (clearTrades) this.db.data.trades = [];
+    if (clearPositions) this.db.data.positions = [];
+
+    await this.db.write();
+
+    return this.db.data.portfolio.paper;
+  }
 }
 
 

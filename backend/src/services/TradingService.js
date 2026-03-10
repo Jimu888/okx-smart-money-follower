@@ -149,6 +149,16 @@ class TradingService {
     return pf?.paper || null;
   }
 
+  async resetPaper({ initialUsd } = {}) {
+    if (!this.testMode) {
+      throw new Error('resetPaper only allowed in TEST_MODE');
+    }
+
+    const init = Number(initialUsd ?? this.paper.initialUsd ?? 10000);
+    const paper = await this.databaseService.resetPaper({ initialUsd: init, clearTrades: true, clearPositions: true });
+    return paper;
+  }
+
   async computePaperEquity() {
     const paper = (await this.getPaperSnapshot()) || { cashUsd: 0, realizedPnlUsd: 0, initialUsd: 0 };
     const open = await this.databaseService.getPositions({ status: 'OPEN' });

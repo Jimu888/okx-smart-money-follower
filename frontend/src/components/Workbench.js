@@ -14,6 +14,8 @@ export default function Workbench() {
 
   const { data: stats } = useQuery('dashboard-stats', () => apiService.getStats(), { refetchInterval: 20000 });
   const { data: portfolio } = useQuery('paper-portfolio', () => apiService.getPortfolio(), { refetchInterval: 20000 });
+
+  const [paperInitialUsd, setPaperInitialUsd] = useState('');
   const { data: settings } = useQuery('settings', () => apiService.getSettings(), { refetchInterval: 60000 });
   const { data: wallets = [] } = useQuery('watchlist', () => apiService.getWatchList(), { refetchInterval: 60000 });
   const { data: recentTrades = [] } = useQuery(['recent-trades', 5], () => apiService.getRecentTrades({ limit: 5 }), {
@@ -283,7 +285,33 @@ export default function Workbench() {
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 mt-2">说明：盈亏为模拟计算，价格来自 OKX MCP/市场报价；仅供策略回测体验。</div>
+          <div className="mt-3 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-gray-600">初始资金(USD)</div>
+              <input
+                value={paperInitialUsd}
+                onChange={(e) => setPaperInitialUsd(e.target.value)}
+                placeholder={String(portfolio.paper.initialUsd || 10000)}
+                className={UI.inputNumber}
+                style={{ maxWidth: 140 }}
+              />
+              <button
+                type="button"
+                className={UI.btnSecondary}
+                onClick={async () => {
+                  const v = Number(paperInitialUsd || portfolio.paper.initialUsd || 10000);
+                  await apiService.resetPaperPortfolio(v);
+                  setPaperInitialUsd('');
+                  qc.invalidateQueries('paper-portfolio');
+                  qc.invalidateQueries('recent-trades');
+                  qc.invalidateQueries('dashboard-stats');
+                }}
+              >
+                应用并清空重置
+              </button>
+            </div>
+            <div className="text-xs text-gray-500">说明：重置会清空模拟交易/持仓；盈亏为模拟计算，仅供策略验证。</div>
+          </div>
         </div>
       ) : null}
 
