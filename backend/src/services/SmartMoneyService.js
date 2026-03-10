@@ -287,7 +287,26 @@ class SmartMoneyService {
   // 处理单个信号
   async processSignal(signal, chain) {
     try {
-      const { token, triggerWalletAddress, triggerWalletCount, amountUsd } = signal;
+      const { token, triggerWalletAddress, triggerWalletCount, amountUsd, price } = signal;
+
+      // ---- paper trading mark-to-market ----
+      // OKX signal-list includes a "price" field (USD). Use it to update open positions so PnL moves.
+      try {
+        const px = Number(price);
+        const addr = token?.tokenAddress;
+        if (addr && Number.isFinite(px) && px > 0) {
+          const open = await this.databaseService.getPositions({ status: 'OPEN' });
+          const targets = open.filter((p) => String(p.tokenAddress) === String(addr) && String(p.chain) === String(chain));
+          for (const p of targets) {
+            await this.databaseService.updatePosition(p.id, {
+              lastPriceUsd: px,
+              pnlPercent: p.entryPriceUsd ? ((px - Number(p.entryPriceUsd)) / Number(p.entryPriceUsd)) * 100 : null,
+              highWaterMarkUsd: Math.max(Number(p.highWaterMarkUsd || 0), px),
+              lastCheckedAt: Date.now(),
+            });
+          }
+        }
+      } catch {}
       
       // 检查触发钱包
       const matchedWallets = this.checkTriggerWallets(triggerWalletAddress);
