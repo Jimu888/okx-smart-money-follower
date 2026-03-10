@@ -105,21 +105,27 @@ class PositionMonitorService {
   }
 
   async getCurrentPriceUsd(position) {
-    // MVP: use onchainos market price
     const chain = position.chain;
     const address = position.tokenAddress;
 
-    // NOTE: onchainos expects a token address. For Solana some endpoints use wSOL for candles,
-    // but market price works with token address from signals.
-    const cmd = `onchainos market price ${address} --chain ${chain}`;
+    // Prefer MCP (works on Render/Cloud)
+    try {
+      if (this.trading?.onchainosMcp?.isConfigured?.()) {
+        const px = await this.trading.onchainosMcp.marketPrice({ chain, tokenAddress: address });
+        if (Number.isFinite(px) && px > 0) return px;
+      }
+    } catch {
+      // ignore and fallback
+    }
 
+    // Fallback: local CLI
+    const cmd = `onchainos market price ${address} --chain ${chain}`;
     try {
       const { stdout } = await execAsync(cmd, { timeout: 20000, env: process.env });
       const obj = JSON.parse(stdout.trim());
       const px = Number(obj.price);
       return Number.isFinite(px) ? px : null;
-    } catch (e) {
-      // silent-ish
+    } catch {
       return null;
     }
   }

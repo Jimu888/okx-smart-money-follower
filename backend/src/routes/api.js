@@ -3,8 +3,23 @@ const express = require('express');
 module.exports = (services) => {
   const router = express.Router();
 
-  router.get('/stats', (req, res) => {
-    res.json(services.smartMoney.getStats());
+  router.get('/stats', async (req, res, next) => {
+    try {
+      const base = services.smartMoney.getStats();
+      const paper = await services.trading.computePaperEquity().catch(() => null);
+      res.json({ ...base, ...(paper || {}) });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  router.get('/portfolio', async (req, res, next) => {
+    try {
+      const snapshot = await services.trading.computePaperEquity();
+      res.json(snapshot);
+    } catch (e) {
+      next(e);
+    }
   });
 
   router.get('/settings', async (req, res, next) => {

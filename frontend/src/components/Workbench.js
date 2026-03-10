@@ -13,6 +13,7 @@ export default function Workbench() {
   const qc = useQueryClient();
 
   const { data: stats } = useQuery('dashboard-stats', () => apiService.getStats(), { refetchInterval: 20000 });
+  const { data: portfolio } = useQuery('paper-portfolio', () => apiService.getPortfolio(), { refetchInterval: 20000 });
   const { data: settings } = useQuery('settings', () => apiService.getSettings(), { refetchInterval: 60000 });
   const { data: wallets = [] } = useQuery('watchlist', () => apiService.getWatchList(), { refetchInterval: 60000 });
   const { data: recentTrades = [] } = useQuery(['recent-trades', 5], () => apiService.getRecentTrades({ limit: 5 }), {
@@ -250,6 +251,41 @@ export default function Workbench() {
         </>
         )}
       </div>
+
+      {/* Block: 模拟盈亏（TEST_MODE / Paper Trading） */}
+      {portfolio?.paper ? (
+        <div className={`${UI.card} ${UI.cardBody}`}>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <div className={UI.title}>模拟盈亏</div>
+              <div className={UI.subtitle}>使用模拟资金进行跟单，信号监控为真实数据</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="p-3 bg-gray-50 rounded-md">
+              <div className="text-xs text-gray-500">初始资金</div>
+              <div className="text-sm font-semibold text-gray-900">${Number(portfolio.paper.initialUsd || 0).toFixed(2)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-md">
+              <div className="text-xs text-gray-500">现金余额</div>
+              <div className="text-sm font-semibold text-gray-900">${Number(portfolio.paper.cashUsd || 0).toFixed(2)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-md">
+              <div className="text-xs text-gray-500">总资产(EQ)</div>
+              <div className="text-sm font-semibold text-gray-900">${Number(portfolio.paper.equityUsd || 0).toFixed(2)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-md">
+              <div className="text-xs text-gray-500">累计盈亏</div>
+              <div className={`text-sm font-semibold ${Number(portfolio.paper.totalPnlUsd || 0) >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                {Number(portfolio.paper.totalPnlUsd || 0) >= 0 ? '+' : ''}${Number(portfolio.paper.totalPnlUsd || 0).toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-500 mt-2">说明：盈亏为模拟计算，价格来自 OKX MCP/市场报价；仅供策略回测体验。</div>
+        </div>
+      ) : null}
 
       {/* Block 2: 止盈止损 */}
       <div className={`${UI.card} ${UI.cardBody}`}>

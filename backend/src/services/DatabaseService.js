@@ -20,11 +20,33 @@ class DatabaseService {
       trades: [],
       positions: [],
       settings: {},
-      notifications: []
+      notifications: [],
+      portfolio: {
+        paper: {
+          initialUsd: 10000,
+          cashUsd: 10000,
+          realizedPnlUsd: 0,
+          updatedAt: Date.now()
+        }
+      }
     });
 
     await this.db.read();
-    this.db.data ||= { watchList: [], trades: [], positions: [], settings: {}, notifications: [] };
+    this.db.data ||= {
+      watchList: [],
+      trades: [],
+      positions: [],
+      settings: {},
+      notifications: [],
+      portfolio: {
+        paper: {
+          initialUsd: 10000,
+          cashUsd: 10000,
+          realizedPnlUsd: 0,
+          updatedAt: Date.now()
+        }
+      }
+    };
     await this.db.write();
 
     this.isConnected = true;
@@ -80,6 +102,19 @@ class DatabaseService {
     this.db.data.settings = settings;
     await this.db.write();
     return settings;
+  }
+
+  // -------- Portfolio (paper trading) --------
+  async getPortfolio() {
+    await this.db.read();
+    return this.db.data.portfolio || null;
+  }
+
+  async savePortfolio(portfolio) {
+    await this.db.read();
+    this.db.data.portfolio = portfolio;
+    await this.db.write();
+    return portfolio;
   }
 
   // -------- Positions --------

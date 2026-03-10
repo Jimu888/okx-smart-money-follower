@@ -29,6 +29,12 @@ class TradingService {
     
     this.isConnected = false;
     this.testMode = process.env.TEST_MODE === 'true';
+
+    // paper trading portfolio
+    this.paper = {
+      enabled: this.testMode,
+      initialUsd: Number(process.env.PAPER_INITIAL_USD || 10000),
+    };
     
     // 稳定币地址映射
     this.stableTokens = {
@@ -64,6 +70,11 @@ class TradingService {
 
       // 验证钱包连接
       await this.validateWallet();
+
+      // init paper portfolio
+      if (this.testMode) {
+        await this.ensurePaperPortfolio();
+      }
       
       this.isConnected = true;
       logger.info('✅ 交易服务初始化完成');
@@ -101,6 +112,70 @@ class TradingService {
     }
     
     return false;
+  }
+
+  async ensurePaperPortfolio({ initialUsd } = {}) {
+    const cur = await this.databaseService.getPortfolio();
+    const paper = cur?.paper || {};
+    const init = Number(initialUsd ?? paper.initialUsd ?? this.paper.initialUsd ?? 10000);
+
+    // if not initialized or explicitly changed
+    if (!cur || !cur.paper || !Number.isFinite(paper.cashUsd)) {
+      const next = {
+        ...(cur || {}),
+        paper: {
+          initialUsd: init,
+          cashUsd: init,
+          realizedPnlUsd: 0,
+          updatedAt: Date.now()
+        }
+      };
+      await this.databaseService.savePortfolio(next);
+      return next.paper;
+    }
+
+    // allow updating initialUsd without resetting cash
+    if (Number.isFinite(init) && init > 0 && paper.initialUsd !== init) {
+      paper.initialUsd = init;
+      paper.updatedAt = Date.now();
+      await this.databaseService.savePortfolio({ ...(cur || {}), paper });
+    }
+
+    return paper;
+  }
+
+  async getPaperSnapshot() {
+    const pf = await this.databaseService.getPortfolio();
+    return pf?.paper || null;
+  }
+
+  async computePaperEquity() {
+    const paper = (await this.getPaperSnapshot()) || { cashUsd: 0, realizedPnlUsd: 0, initialUsd: 0 };
+    const open = await this.databaseService.getPositions({ status: 'OPEN' });
+
+    let unrealized = 0;
+    let positionsValue = 0;
+    for (const p of open) {
+      const qty = Number(p.tokenAmount || 0);
+      const px = Number(p.lastPriceUsd || p.entryPriceUsd || 0);
+      if (!qty || !px) continue;
+      const value = qty * px;
+      positionsValue += value;
+      const cost = Number(p.costUsd || p.buyAmountUsdc || 0);
+      unrealized += (value - cost);
+    }
+
+    const equity = Number(paper.cashUsd || 0) + positionsValue;
+    return {
+      paper: {
+        ...paper,
+        equityUsd: equity,
+        positionsValueUsd: positionsValue,
+        unrealizedPnlUsd: unrealized,
+        totalPnlUsd: Number(paper.realizedPnlUsd || 0) + unrealized,
+        updatedAt: Date.now(),
+      }
+    };
   }
 
   // 执行交换交易
@@ -175,7 +250,22 @@ class TradingService {
       // 4. 执行交易
       let result;
       if (this.testMode) {
+        // paper trading: check cash
+        const paper = await this.ensurePaperPortfolio();
+        if (Number(paper.cashUsd || 0) < Number(amount || 0)) {
+          return { success: false, error: `模拟资金不足：cash=$${Number(paper.cashUsd || 0).toFixed(2)} < amount=$${Number(amount || 0).toFixed(2)}`, tradeId };
+        }
+
         result = await this.simulateSwap(quote);
+
+        // on success: deduct cash
+        if (result.success) {
+          const cur = await this.databaseService.getPortfolio();
+          const nextPaper = { ...(cur?.paper || paper) };
+          nextPaper.cashUsd = Number(nextPaper.cashUsd || 0) - Number(amount || 0);
+          nextPaper.updatedAt = Date.now();
+          await this.databaseService.savePortfolio({ ...(cur || {}), paper: nextPaper });
+        }
       } else {
         result = await this.realSwap(quote, { tokenAddress, chain, amount, slippage });
       }
@@ -190,6 +280,7 @@ class TradingService {
       if (result.success) {
         try {
           const entryPriceUsd = Number(quote.data?.toToken?.tokenUnitPrice || quote.data?.routerResult?.toToken?.tokenUnitPrice || quote.data?.toTokenUnitPrice);
+          const tokenAmountEst = Number.isFinite(entryPriceUsd) && entryPriceUsd > 0 ? (Number(amount || 0) / entryPriceUsd) : null;
           const position = {
             id: `pos_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             status: 'OPEN',
@@ -197,6 +288,10 @@ class TradingService {
             tokenAddress,
             symbol: quote.data?.toToken?.symbol || null,
             entryPriceUsd: Number.isFinite(entryPriceUsd) ? entryPriceUsd : null,
+            // paper trading fields
+            costUsd: Number(amount || 0),
+            tokenAmount: tokenAmountEst,
+
             buyAmountUsdc: amount,
             receivedTokenAmountMin: quote.data?.toTokenAmount || null, // minimal units
             tokenDecimal: Number(quote.data?.toToken?.decimal || 0) || null,
@@ -256,10 +351,34 @@ class TradingService {
       return { success: false, error: 'amountMin=0（可能已全部卖出）' };
     }
 
-    // 测试模式直接模拟
+    // 测试模式：paper trading
     if (this.testMode) {
-      await this.sleep(800);
-      return { success: true, txHash: this.generateTxHash(), simulated: true, soldPct: effectivePct, reason };
+      // compute proceeds based on latest known price
+      let px = Number(position.lastPriceUsd || 0);
+      if (!px && this.onchainosMcp?.isConfigured?.()) {
+        try {
+          px = await this.onchainosMcp.marketPrice({ chain: position.chain, tokenAddress: position.tokenAddress });
+        } catch {}
+      }
+
+      const qtyTotal = Number(position.tokenAmount || 0);
+      const qtySell = qtyTotal * (effectivePct / 100);
+      const proceedsUsd = (Number.isFinite(px) ? px : 0) * qtySell;
+      const costUsd = Number(position.costUsd || position.buyAmountUsdc || 0);
+      const costPortion = costUsd * (effectivePct / 100);
+      const realizedPnl = proceedsUsd - costPortion;
+
+      // update paper cash + realized pnl
+      const cur = await this.databaseService.getPortfolio();
+      const paper = await this.ensurePaperPortfolio();
+      const nextPaper = { ...(cur?.paper || paper) };
+      nextPaper.cashUsd = Number(nextPaper.cashUsd || 0) + proceedsUsd;
+      nextPaper.realizedPnlUsd = Number(nextPaper.realizedPnlUsd || 0) + realizedPnl;
+      nextPaper.updatedAt = Date.now();
+      await this.databaseService.savePortfolio({ ...(cur || {}), paper: nextPaper });
+
+      await this.sleep(300);
+      return { success: true, txHash: this.generateTxHash(), simulated: true, soldPct: effectivePct, reason, proceedsUsd, realizedPnlUsd: realizedPnl };
     }
 
     // 目前 Solana 自动签名未实现

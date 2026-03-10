@@ -112,6 +112,46 @@ class OnchainOSMcpClient {
     return result;
   }
 
+  async marketPrice({ chain, chainIndex, tokenAddress }) {
+    const ci = chainIndex || this.chainToIndex(chain);
+    const addr = tokenAddress;
+
+    const candidates = [
+      'dex-okx-market-price',
+      'dex-okx-market-token-price',
+      'dex-okx-market-price-token',
+    ];
+
+    let lastErr;
+    for (const name of candidates) {
+      try {
+        const result = await this.rpc('tools/call', {
+          name,
+          arguments: {
+            chainIndex: String(ci),
+            tokenAddress: String(addr),
+          },
+        });
+
+        const text = result?.content?.[0]?.text;
+        if (typeof text === 'string' && text.trim().startsWith('{')) {
+          const parsed = JSON.parse(text);
+          const px = Number(parsed?.data?.price ?? parsed?.data?.[0]?.price ?? parsed?.price);
+          return Number.isFinite(px) ? px : null;
+        }
+
+        // If tool returns a direct object
+        const px2 = Number(result?.price ?? result?.data?.price);
+        if (Number.isFinite(px2)) return px2;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+
+    if (lastErr) throw lastErr;
+    return null;
+  }
+
   // 获取推荐Smart Money钱包 (阶段1测试)
   // OKX MCP 当前没有直接的“smart money wallet list”工具，所以先用 mock；后续可由 signal-list 聚合生成。
   async getRecommendedWallets(chain = 'solana') {

@@ -82,6 +82,11 @@ class ApiService {
     return response.data;
   }
 
+  async getPortfolio() {
+    const response = await api.get('/api/portfolio');
+    return response.data;
+  }
+
   async getSettings() {
     const response = await api.get('/api/settings');
     return response.data;
