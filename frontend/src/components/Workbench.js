@@ -26,6 +26,10 @@ export default function Workbench() {
 
   const [paperInitialUsd, setPaperInitialUsd] = useState('');
   const [showAllPositions, setShowAllPositions] = useState(false);
+
+  const [sellModalOpen, setSellModalOpen] = useState(false);
+  const [sellPosition, setSellPosition] = useState(null);
+  const [sellPct, setSellPct] = useState(100);
   const { data: settings } = useQuery('settings', () => apiService.getSettings(), { refetchInterval: 60000 });
   const { data: wallets = [] } = useQuery('watchlist', () => apiService.getWatchList(), { refetchInterval: 60000 });
   const { data: recentTrades = [] } = useQuery(['recent-trades', 5], () => apiService.getRecentTrades({ limit: 5 }), {
@@ -352,7 +356,8 @@ export default function Workbench() {
                   <div className="col-span-2 text-right">买入价</div>
                   <div className="col-span-2 text-right">现价</div>
                   <div className="col-span-1 text-right">数量</div>
-                  <div className="col-span-2 text-right">持仓价值</div>
+                  <div className="col-span-1 text-right">价值</div>
+                  <div className="col-span-1 text-right">操作</div>
                 </div>
                 <div className="divide-y">
                   {(showAllPositions ? openPositions : openPositions.slice(0, 3)).map((p) => {
@@ -378,7 +383,20 @@ export default function Workbench() {
                         <div className="col-span-2 text-right">{entry ? entry.toExponential(3) : '-'}</div>
                         <div className="col-span-2 text-right">{last ? last.toExponential(3) : '-'}</div>
                         <div className="col-span-1 text-right text-[11px] text-gray-600">{qty ? qty.toFixed(0) : '-'}</div>
-                        <div className="col-span-2 text-right font-medium">${Number.isFinite(valueUsd) ? valueUsd.toFixed(2) : '-'}</div>
+                        <div className="col-span-1 text-right font-medium">${Number.isFinite(valueUsd) ? valueUsd.toFixed(2) : '-'}</div>
+                        <div className="col-span-1 text-right">
+                          <button
+                            type="button"
+                            className="text-xs text-emerald-700 hover:text-emerald-800 font-medium"
+                            onClick={() => {
+                              setSellPosition(p);
+                              setSellPct(100);
+                              setSellModalOpen(true);
+                            }}
+                          >
+                            卖出
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -685,6 +703,91 @@ export default function Workbench() {
         chain={recommendChain}
         setChain={setRecommendChain}
       />
+
+      {/* Sell position modal */}
+      <Modal
+        open={sellModalOpen}
+        title="卖出持仓（模拟）"
+        onClose={() => {
+          setSellModalOpen(false);
+          setSellPosition(null);
+        }}
+      >
+        {sellPosition ? (
+          <div className="space-y-3">
+            <div className="text-xs text-gray-600">
+              <div className="font-medium text-gray-900">
+                {sellPosition.symbol || 'UNKNOWN'}
+                <span className="text-gray-400"> · </span>
+                <span className="font-mono">{String(sellPosition.tokenAddress || '').slice(0, 10)}...{String(sellPosition.tokenAddress || '').slice(-6)}</span>
+              </div>
+              <div className="mt-1">链：{sellPosition.chain}</div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-medium text-gray-700">卖出比例</div>
+                <div className="text-xs text-gray-500">{sellPct}%</div>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                step={1}
+                value={sellPct}
+                onChange={(e) => setSellPct(Number(e.target.value))}
+                className="w-full mt-2"
+              />
+              <div className="flex gap-2 mt-2">
+                {[25, 50, 75, 100].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={UI.btnSecondary}
+                    onClick={() => setSellPct(p)}
+                  >
+                    {p}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                className={UI.btnSecondary}
+                onClick={() => {
+                  setSellModalOpen(false);
+                  setSellPosition(null);
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className={UI.btnPrimary}
+                onClick={async () => {
+                  const id = sellPosition.id;
+                  const pct = Number(sellPct || 100);
+                  await apiService.sellPosition(id, pct);
+                  qc.invalidateQueries('paper-portfolio');
+                  qc.invalidateQueries('positions-open');
+                  qc.invalidateQueries('recent-trades');
+                  qc.invalidateQueries('dashboard-stats');
+                  setSellModalOpen(false);
+                  setSellPosition(null);
+                }}
+              >
+                确认卖出
+              </button>
+            </div>
+
+            <div className="text-[11px] text-gray-500">
+              说明：当前为模拟卖出，按最新价格估算卖出价值并计入模拟盈亏。
+            </div>
+          </div>
+        ) : null}
+      </Modal>
 
       {/* Block 4: 最近交易 */}
       <div className={UI.card}>
