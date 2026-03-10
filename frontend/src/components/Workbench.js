@@ -25,6 +25,7 @@ export default function Workbench() {
   );
 
   const [paperInitialUsd, setPaperInitialUsd] = useState('');
+  const [showAllPositions, setShowAllPositions] = useState(false);
   const { data: settings } = useQuery('settings', () => apiService.getSettings(), { refetchInterval: 60000 });
   const { data: wallets = [] } = useQuery('watchlist', () => apiService.getWatchList(), { refetchInterval: 60000 });
   const { data: recentTrades = [] } = useQuery(['recent-trades', 5], () => apiService.getRecentTrades({ limit: 5 }), {
@@ -327,7 +328,18 @@ export default function Workbench() {
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold text-gray-800">持仓详情（OPEN）</div>
-              <div className="text-xs text-gray-500">{openPositions.length} 条</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-gray-500">{openPositions.length} 条</div>
+                {openPositions.length > 3 ? (
+                  <button
+                    type="button"
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                    onClick={() => setShowAllPositions(v => !v)}
+                  >
+                    {showAllPositions ? '收起' : `展开全部`}
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {openPositions.length === 0 ? (
@@ -335,41 +347,44 @@ export default function Workbench() {
             ) : (
               <div className="border border-gray-200 rounded-md overflow-hidden">
                 <div className="grid grid-cols-12 gap-2 px-3 py-2 bg-gray-50 text-[11px] text-gray-600 font-medium">
-                  <div className="col-span-3">代币</div>
-                  <div className="col-span-2">链</div>
-                  <div className="col-span-2 text-right">成本(USD)</div>
+                  <div className="col-span-4">代币</div>
+                  <div className="col-span-1">链</div>
+                  <div className="col-span-2 text-right">买入价</div>
                   <div className="col-span-2 text-right">现价</div>
-                  <div className="col-span-2 text-right">涨跌幅</div>
                   <div className="col-span-1 text-right">数量</div>
+                  <div className="col-span-2 text-right">持仓价值</div>
                 </div>
                 <div className="divide-y">
-                  {openPositions.slice(0, 20).map((p) => {
+                  {(showAllPositions ? openPositions : openPositions.slice(0, 3)).map((p) => {
                     const entry = Number(p.entryPriceUsd || 0);
                     const last = Number(p.lastPriceUsd || 0);
-                    const pnlPct = Number.isFinite(Number(p.pnlPercent)) ? Number(p.pnlPercent) : (entry && last ? ((last - entry) / entry) * 100 : 0);
-                    const cost = Number(p.costUsd || p.buyAmountUsdc || 0);
+                    const pnlPct = Number.isFinite(Number(p.pnlPercent))
+                      ? Number(p.pnlPercent)
+                      : (entry && last ? ((last - entry) / entry) * 100 : 0);
                     const qty = Number(p.tokenAmount || 0);
+                    const valueUsd = (Number.isFinite(last) ? last : 0) * qty;
+
+                    const tokenTitle = `${p.symbol || 'UNKNOWN'} (${p.tokenAddress ? `${String(p.tokenAddress).slice(0, 6)}...${String(p.tokenAddress).slice(-4)}` : '-'})`;
+
                     return (
                       <div key={p.id} className="grid grid-cols-12 gap-2 px-3 py-2 text-xs items-center">
-                        <div className="col-span-3 min-w-0">
-                          <div className="text-xs font-medium text-gray-900 truncate">{p.symbol || p.tokenAddress?.slice(0, 8) + '...'}</div>
-                          <div className="text-[11px] text-gray-500 font-mono truncate">{p.tokenAddress}</div>
+                        <div className="col-span-4 min-w-0">
+                          <div className="text-xs font-medium text-gray-900 truncate">{tokenTitle}</div>
+                          <div className={`text-[11px] mt-0.5 ${pnlPct >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                            {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                          </div>
                         </div>
-                        <div className="col-span-2 text-xs text-gray-700">{p.chain}</div>
-                        <div className="col-span-2 text-right">${cost.toFixed(2)}</div>
+                        <div className="col-span-1 text-xs text-gray-700">{p.chain}</div>
+                        <div className="col-span-2 text-right">{entry ? entry.toExponential(3) : '-'}</div>
                         <div className="col-span-2 text-right">{last ? last.toExponential(3) : '-'}</div>
-                        <div className={`col-span-2 text-right font-medium ${pnlPct >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
                         <div className="col-span-1 text-right text-[11px] text-gray-600">{qty ? qty.toFixed(0) : '-'}</div>
+                        <div className="col-span-2 text-right font-medium">${Number.isFinite(valueUsd) ? valueUsd.toFixed(2) : '-'}</div>
                       </div>
                     );
                   })}
                 </div>
               </div>
             )}
-
-            {openPositions.length > 20 ? (
-              <div className="text-[11px] text-gray-500 mt-2">仅展示前 20 条，更多可后续加“持仓页/筛选”。</div>
-            ) : null}
           </div>
         </div>
       ) : null}
