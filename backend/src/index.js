@@ -155,7 +155,9 @@ class SmartMoneyFollowerApp {
   // 配置Express应用
   configureApp() {
     // 安全中间件
-    this.app.set('trust proxy', true);
+    // Render/Cloudflare 等场景需要信任 1 层代理；不要用 true（express-rate-limit 会报 ERR_ERL_PERMISSIVE_TRUST_PROXY）
+    const trustProxy = process.env.TRUST_PROXY != null ? process.env.TRUST_PROXY : 1;
+    this.app.set('trust proxy', trustProxy);
     this.app.use(helmet());
 
     // CORS配置
