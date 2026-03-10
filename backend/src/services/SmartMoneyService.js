@@ -475,20 +475,27 @@ class SmartMoneyService {
   // 添加监控钱包
   async addWallet(wallet) {
     try {
+      const raw = (wallet?.address || '').trim();
+      if (!raw) throw new Error('钱包地址不能为空');
+
       // 验证钱包地址格式
-      if (!this.isValidWalletAddress(wallet.address)) {
+      if (!this.isValidWalletAddress(raw)) {
         throw new Error('无效的钱包地址格式');
       }
 
+      // Solana base58 is case-sensitive; EVM can be normalized to lower-case
+      const isEvm = /^0x[a-fA-F0-9]{40}$/.test(raw);
+      const canonical = isEvm ? raw.toLowerCase() : raw;
+
       // 检查是否已存在
-      const exists = this.watchList.some(w => w.address.toLowerCase() === wallet.address.toLowerCase());
+      const exists = this.watchList.some(w => String(w.address) === canonical);
       if (exists) {
         throw new Error('钱包地址已在监控列表中');
       }
 
       const newWallet = {
-        address: wallet.address.toLowerCase(),
-        nickname: wallet.nickname || '',
+        address: canonical,
+        nickname: (wallet?.nickname || '').trim(),
         addedAt: Date.now(),
         performance: 0,
         trades: 0
