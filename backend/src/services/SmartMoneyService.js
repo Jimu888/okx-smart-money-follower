@@ -37,8 +37,12 @@ class SmartMoneyService {
       supportedChains: (process.env.SUPPORTED_CHAINS || 'solana,base,ethereum').split(','),
       minLiquidity: parseInt(process.env.MIN_LIQUIDITY) || 10000,
       minHolders: parseInt(process.env.MIN_HOLDERS) || 100,
-      maxDailyTrades: parseInt(process.env.MAX_DAILY_TRADES) || 20,
+      maxDailyTrades: parseInt(process.env.MAX_DAILY_TRADES) || (process.env.TEST_MODE === 'true' ? 200 : 20),
       cooldownPeriod: parseInt(process.env.COOLDOWN_PERIOD) || 300000,
+
+      // ---- Signal freshness ----
+      // Only follow signals within this window (ms). Default 10 minutes.
+      signalMaxAgeMs: parseInt(process.env.SIGNAL_MAX_AGE_MS) || 10 * 60 * 1000,
 
       // ---- Follow Asset Mode ----
       // 默认B：AUTO（按链自动选择支付资产，优先 USDC/USDT，否则原生币）
@@ -308,6 +312,17 @@ class SmartMoneyService {
         }
       } catch {}
       
+      // ---- Freshness filter ----
+      const sigTs = Number(signal.timestamp);
+      const maxAge = Number(this.settings.signalMaxAgeMs || 0);
+      if (Number.isFinite(sigTs) && maxAge > 0) {
+        const age = Date.now() - sigTs;
+        if (age > maxAge) {
+          // too old: ignore for following
+          return;
+        }
+      }
+
       // 检查触发钱包
       const matchedWallets = this.checkTriggerWallets(triggerWalletAddress);
       if (matchedWallets.length < this.settings.minTriggerCount) {
