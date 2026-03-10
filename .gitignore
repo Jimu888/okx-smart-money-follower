@@ -1,0 +1,123 @@
+# =====================================================
+# Smart Money Follower - Git忽略文件
+# =====================================================
+
+# ===== 环境变量和配置文件 =====
+.env
+.env.local
+.env.production
+.env.staging
+config/private.json
+secrets.json
+
+# ===== API密钥和钱包文件 =====
+*.key
+*.pem
+wallet.json
+keystore/
+private-keys/
+
+# ===== 数据库和日志文件 =====
+data/
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+backup/
+
+# ===== Node.js依赖 =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# package-lock.json 建议提交以保证可复现构建
+# yarn.lock 如使用 yarn 可提交
+# package-lock.json
+# yarn.lock
+
+# ===== 构建输出 =====
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# ===== 缓存文件 =====
+.cache/
+.parcel-cache/
+.npm
+.eslintcache
+.stylelintcache
+
+# ===== IDE和编辑器 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== 测试覆盖率 =====
+coverage/
+.nyc_output
+
+# ===== 临时文件 =====
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ===== 操作系统生成文件 =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== 前端特定文件 =====
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+
+# ===== 部署文件 =====
+.vercel
+.netlify
+.firebase/
+
+# ===== PM2进程管理 =====
+ecosystem.config.js
+.pm2/
+
+# ===== Docker =====
+docker-compose.override.yml
+.docker/
+
+# ===== 错误报告 =====
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===== 运行时数据 =====
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ===== 用户上传文件 =====
+uploads/
+
+# ===== 安全相关 =====
+.cert
+*.crt
+*.csr
+*.key
+*.pem
+
+# ===== 自定义忽略 =====
+# 在此添加项目特定的忽略文件

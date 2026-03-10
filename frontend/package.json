@@ -1,0 +1,60 @@
+{
+  "name": "smart-money-follower-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart Money Follower - React Frontend",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.1",
+    "react-scripts": "5.0.1",
+    "axios": "^1.6.0",
+    "socket.io-client": "^4.7.5",
+    "framer-motion": "^10.16.5",
+    "lucide-react": "^0.294.0",
+    "recharts": "^2.8.0",
+    "react-hot-toast": "^2.4.1",
+    "react-hook-form": "^7.48.2",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "react-query": "^3.39.3",
+    "zustand": "^4.4.7",
+    "react-use": "^17.4.0"
+  },
+  "scripts": {
+    "start": "set DANGEROUSLY_DISABLE_HOST_CHECK=true&& react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev": "set DANGEROUSLY_DISABLE_HOST_CHECK=true&& react-scripts start"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^16.18.68",
+    "@types/react": "^18.2.42",
+    "@types/react-dom": "^18.2.17",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6"
+  },
+  "proxy": "http://localhost:3001"
+}

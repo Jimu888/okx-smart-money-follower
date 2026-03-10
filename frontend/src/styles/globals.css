@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --okx-green: #10b981;
+  --okx-green-dark: #059669;
+  --okx-green-light: #d1fae5;
+}
+
+/* 全局重置 */
+* { 
+  box-sizing: border-box; 
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  background: #f9fafb;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 表单元素统一样式 */
+input, select, textarea {
+  font-size: inherit;
+  font-family: inherit;
+}
+
+/* 输入框聚焦效果 */
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  border-color: var(--okx-green);
+}
+
+/* 滑块样式 */
+input[type="range"] {
+  accent-color: var(--okx-green-dark);
+  height: 4px;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: #e5e7eb;
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--okx-green-dark);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 按钮悬停效果优化 */
+button {
+  transition: all 0.15s ease-in-out;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 紧凑样式工具类 */
+@layer utilities {
+  .input-unified {
+    @apply w-full h-8 px-2.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-emerald-300 focus:border-emerald-300 transition-all;
+  }
+  
+  .btn-unified {
+    @apply h-8 px-3 text-xs font-medium rounded-md transition-colors inline-flex items-center justify-center;
+  }
+  
+  .card-unified {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+  }
+}
