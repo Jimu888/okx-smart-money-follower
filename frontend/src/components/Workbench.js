@@ -175,7 +175,7 @@ export default function Workbench() {
             {/* 第一行输入：强制 4 等宽列，保证输入框水平对齐 */}
             <div className={`grid grid-cols-12 ${UI.fieldGap} items-end`}>
             <div className="col-span-3 flex flex-col">
-              <div className={`${UI.labelTitle} h-5`}>触发数量<Tooltip text="至少多少个钱包同时买入才触发跟单" /></div>
+              <div className={`${UI.labelTitle} h-5 mb-0`}>触发数量<Tooltip text="至少多少个钱包同时买入才触发跟单" /></div>
               <input
                 type="number"
                 value={form.minTriggerCount}
@@ -186,8 +186,8 @@ export default function Workbench() {
             </div>
 
             <div className="col-span-3 flex flex-col">
-              <div className="flex items-center justify-between h-5">
-                <div className={UI.labelTitle}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）" /></div>
+              <div className="flex items-center justify-between h-5 mb-0">
+                <div className={UI.labelTitle + ' mb-0'}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）" /></div>
                 <button
                   onClick={() => setOpenAdvanced(true)}
                   className="text-xs text-emerald-600 hover:text-emerald-700 font-medium leading-none"
@@ -206,7 +206,7 @@ export default function Workbench() {
             </div>
 
             <div className="col-span-3 flex flex-col">
-              <div className={`${UI.labelTitle} h-5`}>最大滑点<Tooltip text="交易时允许的最大价格滑点" /></div>
+              <div className={`${UI.labelTitle} h-5 mb-0`}>最大滑点<Tooltip text="交易时允许的最大价格滑点" /></div>
               <div className="relative">
                 <input
                   type="number"
@@ -220,7 +220,7 @@ export default function Workbench() {
             </div>
 
             <div className="col-span-3 flex flex-col">
-              <div className={`${UI.labelTitle} h-5`}>检查间隔(ms)</div>
+              <div className={`${UI.labelTitle} h-5 mb-0`}>检查间隔(ms)</div>
               <input
                 type="number"
                 value={form.checkInterval}
