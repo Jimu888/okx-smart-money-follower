@@ -171,8 +171,10 @@ export default function Workbench() {
         {!form ? (
           <div className="text-xs text-gray-500">加载中...</div>
         ) : (
-          <div className={`grid grid-cols-2 lg:grid-cols-4 ${UI.fieldGap} items-start`}>
-            <div className="flex flex-col">
+          <>
+            {/* 第一行输入：强制 4 等宽列，保证输入框水平对齐 */}
+            <div className={`grid grid-cols-12 ${UI.fieldGap} items-end`}>
+            <div className="col-span-3 flex flex-col">
               <div className={`${UI.labelTitle} h-5`}>触发数量<Tooltip text="至少多少个钱包同时买入才触发跟单" /></div>
               <input
                 type="number"
@@ -183,12 +185,13 @@ export default function Workbench() {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="col-span-3 flex flex-col">
               <div className="flex items-center justify-between h-5">
                 <div className={UI.labelTitle}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）" /></div>
                 <button
                   onClick={() => setOpenAdvanced(true)}
-                  className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                  className="text-xs text-emerald-600 hover:text-emerald-700 font-medium leading-none"
+                  style={{ padding: 0 }}
                 >
                   高级
                 </button>
@@ -197,12 +200,12 @@ export default function Workbench() {
                 type="number"
                 value={form.followAmount}
                 onChange={(e) => setForm({ ...form, followAmount: Number(e.target.value) })}
-                className={UI.input}
+                className={UI.inputNumber}
                 min={1}
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="col-span-3 flex flex-col">
               <div className={`${UI.labelTitle} h-5`}>最大滑点<Tooltip text="交易时允许的最大价格滑点" /></div>
               <div className="relative">
                 <input
@@ -216,29 +219,32 @@ export default function Workbench() {
               </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="col-span-3 flex flex-col">
               <div className={`${UI.labelTitle} h-5`}>检查间隔(ms)</div>
               <input
                 type="number"
                 value={form.checkInterval}
                 onChange={(e) => setForm({ ...form, checkInterval: Number(e.target.value) })}
-                className={UI.input}
+                className={UI.inputNumber}
                 min={5000} step={1000}
               />
             </div>
 
-            <div className="col-span-2 lg:col-span-4">
-              <div className={UI.labelTitle}>支付资产</div>
-              <select
-                value={form.followAssetMode || 'AUTO'}
-                onChange={(e) => setForm({ ...form, followAssetMode: e.target.value })}
-                className={UI.select}
-              >
-                <option value="AUTO">自动选择（优先 USDC/USDT）</option>
-                <option value="PER_CHAIN">按链单独设置</option>
-              </select>
-            </div>
           </div>
+
+          {/* 第二行：支付资产（独占一行，避免挤占栅格导致错位） */}
+          <div className="mt-3">
+            <div className={UI.labelTitle}>支付资产</div>
+            <select
+              value={form.followAssetMode || 'AUTO'}
+              onChange={(e) => setForm({ ...form, followAssetMode: e.target.value })}
+              className={UI.select}
+            >
+              <option value="AUTO">自动选择（优先 USDC/USDT）</option>
+              <option value="PER_CHAIN">按链单独设置</option>
+            </select>
+          </div>
+        </>
         )}
       </div>
 
