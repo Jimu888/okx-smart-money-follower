@@ -187,14 +187,7 @@ export default function Workbench() {
 
             <div className="col-span-3 flex flex-col">
               <div className="flex items-center justify-between h-5 mb-0">
-                <div className={UI.labelTitle + ' mb-0'}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）" /></div>
-                <button
-                  onClick={() => setOpenAdvanced(true)}
-                  className="text-xs text-emerald-600 hover:text-emerald-700 font-medium leading-none"
-                  style={{ padding: 0 }}
-                >
-                  高级
-                </button>
+                <div className={UI.labelTitle + ' mb-0'}>跟单金额<Tooltip text="每次触发后的买入金额（USDT）。如需按链指定支付资产/金额，请在下方“支付资产”旁进入高级设置。" /></div>
               </div>
               <input
                 type="number"
@@ -234,7 +227,17 @@ export default function Workbench() {
 
           {/* 第二行：支付资产（独占一行，避免挤占栅格导致错位） */}
           <div className="mt-3">
-            <div className={UI.labelTitle}>支付资产</div>
+            <div className="flex items-center justify-between h-5 mb-1">
+              <div className={UI.labelTitle + ' mb-0'}>支付资产<Tooltip text="自动选择=优先 USDC/USDT；按链单独设置=为每条链指定资产与金额。" /></div>
+              <button
+                type="button"
+                onClick={() => setOpenAdvanced(true)}
+                className="text-xs text-emerald-600 hover:text-emerald-700 font-medium leading-none"
+                style={{ padding: 0 }}
+              >
+                高级设置
+              </button>
+            </div>
             <select
               value={form.followAssetMode || 'AUTO'}
               onChange={(e) => setForm({ ...form, followAssetMode: e.target.value })}
