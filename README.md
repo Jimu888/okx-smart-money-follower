@@ -1,5 +1,7 @@
 # 🎯 Smart Money Follower
 
+**Powered by OKX OnchainOS** · Author: [@0xjimumu](https://x.com/0xjimumu)
+
 **多智能钱包自动跟单系统** - 当多个聪明钱包同时买入同一代币时，自动跟单交易
 
 [![GitHub Stars](https://img.shields.io/github/stars/jimu888/smart-money-follower)](https://github.com/jimu888/smart-money-follower)
@@ -29,6 +31,14 @@
 - 🔴 **Arbitrum** - 以太坊Layer2扩展
 
 ## 🚀 快速开始
+
+> ⚠️ 风险提示：本项目提供的是跟单/模拟框架与信号监控能力，不构成投资建议。链上交易风险极高，请优先使用 `TEST_MODE=true` 进行模拟测试。
+
+### OpenClaw Skill（可选）
+如果你使用 OpenClaw，可以把本项目作为 Skill 使用：
+- Skill 路径：`openclaw-skill/okx-smart-money-follower-skill/`
+- 默认使用 **OKX OnchainOS MCP**（推荐），无需安装本地 OnchainOS CLI。
+
 
 ### 前置要求
 
